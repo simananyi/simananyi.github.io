@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>穴位学习助手 - 内置数据版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* 允许文本选择的元素 */
+        .location, .meridian, .status, p, .search-result-text {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 模块切换按钮 */
+        .module-switcher {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50px;
+            padding: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .module-btn {
+            flex: 1;
+            padding: 12px 30px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 45px;
+            transition: all 0.3s ease;
+        }
+
+        .module-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        /* 搜索模块样式 */
+        .search-section {
+            display: none;
+        }
+
+        .search-section.active {
+            display: block;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input-group {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .search-type-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .search-type-btn {
+            padding: 8px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .search-type-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .search-results {
+            margin-top: 30px;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 18px;
+        }
+
+        .result-item {
+            background: linear-gradient(45deg, #f8f9ff, #e8f4f8);
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .result-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-meridian {
+            font-size: 0.9em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .result-location {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .meridian-acupoints-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .acupoint-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .acupoint-tag:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .acupoint-tag.key-point {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        }
+
+        /* 自测模块（原有样式保持） */
+        .study-section {
+            display: none;
+        }
+
+        .study-section.active {
+            display: block;
+        }
+
+        .timer {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .timer-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .timer.warning .timer-display {
+            color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .acupoints-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .acupoint-card {
+            background: linear-gradient(45deg, #f8f9ff, #e8f4f8);
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .acupoint-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .acupoint-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .acupoint-details {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .acupoint-details.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .meridian {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .location {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        }
+
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+
+        .settings-section {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #e1e8ed;
+        }
+
+        .setting-item {
+            margin: 20px 0;
+        }
+
+        .setting-label {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 12px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .slider-value {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .key-point-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .time-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .time-input {
+            width: 60px;
+            padding: 8px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .time-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .meridian-select {
+            margin: 20px 0;
+        }
+
+        .meridian-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .meridian-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .meridian-item:hover {
+            background: #f0f0f0;
+        }
+
+        .meridian-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .meridian-label {
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .select-all-btn {
+            margin: 10px 0;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .select-all-btn:hover {
+            background: #5a67d8;
+        }
+
+        .data-info {
+            background: #e8f4f8;
+            border-left: 4px solid #4ecdc4;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .module-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .timer-display {
+                font-size: 2.5em;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 15px;
+                margin: 8px 5px;
+            }
+            
+            .meridian-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .meridian-acupoints-list {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .module-switcher {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .module-btn {
+                width: 100%;
+            }
+            
+            .search-input {
+                font-size: 14px;
+                padding: 12px 45px 12px 15px;
+            }
+            
+            .btn {
+                display: block;
+                width: 100%;
+                max-width: 280px;
+                margin: 10px auto;
+            }
+            
+            .meridian-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .meridian-acupoints-list {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            
+            .acupoint-tag {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+        }
+
+        /* 返回按钮样式 */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #5a67d8;
+            transform: translateX(-5px);
+        }
+
+        .back-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 提示信息样式 */
+        .tips {
+            background: #e8f4f8;
+            border-left: 4px solid #4ecdc4;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .tips-title {
+            font-weight: bold;
+            color: #4ecdc4;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 穴位学习助手</h1>
+            <p>搜索查询 · 智能自测 · 高效记忆</p>
+        </div>
+
+        <!-- 模块切换 -->
+        <div class="module-switcher">
+            <button class="module-btn active" onclick="switchModule('search')">🔍 搜索模块</button>
+            <button class="module-btn" onclick="switchModule('study')">📖 自测模块</button>
+        </div>
+
+        <!-- 搜索模块 -->
+        <div class="card search-section active" id="searchSection">
+            <div class="search-container">
+                <h2 style="text-align: center; margin-bottom: 25px; color: #333;">穴位搜索查询</h2>
+                
+                <div class="search-type-toggle">
+                    <button class="search-type-btn active" onclick="setSearchType('acupoint')">搜索穴位</button>
+                    <button class="search-type-btn" onclick="setSearchType('meridian')">搜索经脉</button>
+                </div>
+                
+                <div class="search-input-group">
+                    <input type="text" 
+                           id="searchInput" 
+                           class="search-input" 
+                           placeholder="请输入穴位名称..."
+                           onkeypress="handleEnterKey(event)">
+                    <button class="search-button" onclick="performSearch()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="tips">
+                    <div class="tips-title">💡 使用提示：</div>
+                    <div id="searchTips">
+                        • 输入穴位名称（如"风池"、"太阳"）查看其归经和定位<br>
+                        • 支持模糊搜索，输入部分文字即可
+                    </div>
+                </div>
+                
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </div>
+
+        <!-- 自测模块 -->
+        <div class="card study-section" id="studySection">
+            <div class="study-content" id="studyContent">
+                <div class="data-info">
+                    <strong>📚 内置数据信息：</strong><br>
+                    总穴位数：<span id="totalPointsCount">--</span> 个<br>
+                    重点穴位：<span id="keyPointsCount">--</span> 个<br>
+                    普通穴位：<span id="normalPointsCount">--</span> 个<br>
+                    经脉数量：<span id="meridiansCount">--</span> 条
+                </div>
+
+                <div class="settings-section">
+                    <h3 style="text-align: center; margin-bottom: 20px; color: #333;">⚙️ 学习设置</h3>
+                    
+                    <!-- 总穴位数量设置 -->
+                    <div class="setting-item">
+                        <label class="setting-label">📍 总穴位数量：</label>
+                        <div class="slider-container">
+                            <input type="range" id="totalPointSlider" class="slider" min="1" max="10" value="5">
+                            <span class="slider-value" id="totalSliderValue">5</span>
+                        </div>
+                    </div>
+
+                    <!-- 重点穴位数量设置 -->
+                    <div class="setting-item">
+                        <label class="setting-label">🎯 重点穴位数量（带 * 号）：</label>
+                        <div class="slider-container">
+                            <input type="range" id="keyPointSlider" class="slider" min="0" max="5" value="3">
+                            <span class="slider-value" id="keySliderValue">3</span>
+                        </div>
+                        <div style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9em;">
+                            <span id="sliderDescription">将抽取 3 个重点穴位 + 2 个普通穴位</span>
+                        </div>
+                    </div>
+
+                    <!-- 倒计时设置 -->
+                    <div class="setting-item">
+                        <label class="setting-label">⏱️ 倒计时设置：</label>
+                        <div class="time-inputs">
+                            <input type="number" id="minutesInput" class="time-input" min="0" max="10" value="3">
+                            <span class="time-label">分</span>
+                            <input type="number" id="secondsInput" class="time-input" min="0" max="59" value="0">
+                            <span class="time-label">秒</span>
+                        </div>
+                        <div style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9em;">
+                            最长不超过10分钟
+                        </div>
+                    </div>
+
+                    <!-- 经脉选择 -->
+                    <div class="setting-item meridian-select">
+                        <label class="setting-label">🌟 选择经脉（多选）：</label>
+                        <button class="select-all-btn" onclick="toggleSelectAll()">全选/取消全选</button>
+                        <div class="meridian-grid" id="meridianGrid">
+                            <!-- 经脉选项将在这里生成 -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timer" id="timer">
+                    <h3>⏱️ 倒计时</h3>
+                    <div class="timer-display" id="timerDisplay">03:00</div>
+                </div>
+
+                <div class="status" id="status">
+                    准备开始学习...
+                </div>
+
+                <div class="acupoints-grid" id="acupointsGrid">
+                    <!-- 穴位卡片将在这里生成 -->
+                </div>
+
+                <div class="controls">
+                    <button class="btn" id="startBtn" onclick="startStudy()">🎯 开始学习</button>
+                    <button class="btn btn-secondary" id="showAnswersBtn" onclick="showAllAnswers()" style="display: none;">
+                        👁️ 显示答案
+                    </button>
+                    <button class="btn" id="newRoundBtn" onclick="newRound()" style="display: none;">
+                        🔄 重新开始
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 内置穴位数据
+        const ACUPOINT_DATA_TEXT = `
+-手太阴肺经
+1.	*中府：横平第1肋间隙，锁骨下窝外侧，前正中线旁开6寸
+2.	云门：锁骨下窝凹陷中，肩胛骨喙突内缘，前正中线旁开6寸
+3.	天府：腋前纹头下3寸，肱二头肌桡侧缘处
+4.	侠白：腋前纹头下4寸，肱二头肌桡侧缘处
+5.	*尺泽：肘横纹上，肱二头肌腱桡侧缘凹陷中
+6.	*孔最：腕掌侧远端横纹上7寸，尺泽与太渊连线上
+7.	*列缺：腕掌侧远端横纹上1.5寸，拇短伸肌腱与拇长展肌腱之 间，拇长展肌腱沟的凹陷中
+8.	经渠：腕掌侧远端横纹上1寸，桡骨茎突与桡动脉之间
+9.	*太渊：桡骨茎突与舟状骨之间，拇长展肌腱尺侧凹陷中
+10.	*鱼际：第1掌骨桡侧中点赤白肉际处
+11.	*少商：拇指末节桡侧，指甲根角侧上方0.1寸（指寸）
+
+-手阳明大肠经
+1.	*商阳：食指末节桡侧，指甲根角侧上方0.1寸（指寸）
+2.	二间：第2掌指关节桡侧远端赤白肉际处
+3.	*三间：第2掌指关节桡侧近端凹陷中
+4.	*合谷：第2掌骨桡侧的中点处
+5.	*阳溪：腕背侧远端横纹桡侧，桡骨茎突远端，解剖学"鼻咽窝" 凹陷中
+6.	*偏历：腕背侧远端横纹上3寸，阳溪与曲池连线上
+7.	温溜：腕背侧远端横纹上5寸，阳溪与曲池连线上
+8.	下廉：肘横纹下4寸，阳溪与曲池连线上
+9.	上廉：肘横纹下3寸，阳溪与曲池连线上
+10.	*手三里：肘横纹下2寸，阳溪与曲池连线上
+11.	*曲池：在肘横纹外侧端，尺泽与肱骨外上髁连线的中点处
+12.	肘髎：屈肘，曲池外上方1寸，当肱骨边缘处。
+13.	手五里：肘横纹上3寸，曲池与肩髃连线上
+14.	*臂臑：曲池上7寸，三角肌前缘处
+15.	*肩髃：肩峰外侧缘前端与肱骨大结节两骨间凹陷中
+16.	巨骨：锁骨肩峰端与肩胛冈之间凹陷中
+17.	天鼎：横平环状软骨，胸锁乳突肌后缘
+18.	扶突：横平喉结，胸锁乳突肌前、后缘中间
+19.	口禾髎：横平人中沟上1/3与下2/3交点，鼻孔外缘直下
+20.	*迎香：鼻翼外缘中点旁，鼻唇沟中
+
+-足阳明胃经
+1.	*承泣：眼球与眶下缘之间，瞳孔直下
+2.	*四白：眶下孔处
+3.	巨髎：横平鼻翼下缘，瞳孔直下
+4.	*地仓：口角旁开0.4寸（指寸）
+5.	大迎：下颌角前方，咬肌附着部的前缘凹陷中，面动脉搏动处
+6.	*颊车：下颌角前上方一横指（中指）
+7.	*下关：颧弓下缘中央与下颌切迹之间凹陷中
+8.	*头维：额角发际直上0.5寸，头正中线旁开4.5寸
+9.	*人迎：横平喉结，胸锁乳突肌前缘，颈总动脉搏动处
+10.	水突：胸锁乳突肌前缘，当人迎与气舍连线的中点
+11.	气舍：锁骨上小窝，锁骨胸骨端上缘，胸锁乳突肌胸骨头与锁 骨头中间的凹陷中
+12.	缺盆：锁骨上大窝，锁骨上缘凹陷中，前正中线旁开4寸
+13.	气户：锁骨下缘，前正中线旁开4寸
+14.	库房：第1肋间隙，前正中线旁开4寸
+15.	屋翳：第2肋间隙，前正中线旁开4寸
+16.	膺窗：第3肋间隙，前正中线旁开4寸
+17.	乳中：乳头中央
+18.	乳根：第5肋间隙，前正中线旁开4寸
+19.	不容：脐中上6寸，前正中线旁开2寸
+20.	承满：脐中上5寸，前正中线旁开2寸
+21.	*梁门：脐中上4寸，前正中线旁开2寸
+22.	关门：脐中上3寸，前正中线旁开2寸
+23.	太乙：脐中上2寸，前正中线旁开2寸
+24.	滑肉门：脐中上1寸，前正中线旁开2寸
+25.	*天枢：横平脐中，前正中线旁开2寸
+26.	外陵：脐中下1寸，前正中线旁开2寸
+27.	大巨：脐中下2寸，前正中线旁开2寸
+28.	水道：脐中下3寸，前正中线旁开2寸
+29.	*归来：脐中下4寸，前正中线旁开2寸
+30.	*气冲：耻骨联合上缘，前正中线旁开2寸，动脉搏动处
+31.	髀关：当髂前上棘与髌底外侧端的连线上，屈股时，平会阴， 居缝匠肌外侧凹陷处。
+32.	*伏兔：当髂前上棘与髌底外侧端的连线上，髌底上6寸
+33.	阴市：当髂前上棘与髌底外侧端的连线上，髌底上3寸
+34.	*梁丘：当髂前上棘与髌底外侧端的连线上，髌底上2寸
+35.	*犊鼻：髌韧带外侧凹陷中
+36.	*足三里：犊鼻下3寸，距胫骨前缘一横指（中指）
+37.	*上巨虚：犊鼻下6寸，距胫骨前缘一横指（中指）
+38.	*条口：犊鼻下8寸，距胫骨前缘一横指（中指）
+39.	*下巨虚：犊鼻下9寸，距胫骨前缘一横指（中指）
+40.	*丰隆：外踝尖上8寸，条口外，距胫骨前缘二横指（中指）
+41.	*解溪：踝关节前面中央凹陷中，长伸肌腱与趾长伸肌腱之间
+42.	*冲阳：在足背最高处，足背动脉搏动处，当长伸肌腱与趾长 伸肌腱之间
+43.	陷谷：第2、3跖骨间，第2跖趾关节近端凹陷中
+44.	*内庭：第2、3趾间，趾蹼缘后方赤白肉际处
+45.	*厉兑：第2趾末节外侧，趾甲根角侧后方0.1寸（指寸）
+
+-足太阴脾经
+1.	*隐白：大趾末节内侧，趾甲根角侧后方0.1寸（指寸）
+2.	大都：第1跖趾关节远端赤白肉际凹陷中
+3.	*太白：第1跖趾关节近端赤白肉际凹陷中
+4.	*公孙：第1跖骨底的前下缘赤白肉际处
+5.	商丘：内踝前下方，舟骨粗隆与内踝尖连线中点凹陷中
+6.	*三阴交：内踝尖上3寸，胫骨内侧缘后际
+7.	漏谷：内踝尖上6寸，胫骨内侧缘后际
+8.	*地机：阴陵泉下3寸，胫骨内侧缘后际
+9.	*阴陵泉：胫骨内侧髁下缘与胫骨内侧缘之间的凹陷中
+10.	*血海：髌底内侧端上2寸，股内侧肌隆起处
+11.	箕门：髌底内侧端与冲门的连线上1/3与下2/3交点，长收肌和 缝匠肌交角的动脉搏动处
+12.	冲门：腹股沟斜纹中，髂外动脉搏动处的外侧
+13.	府舍：脐中下4.3寸，前正中线旁开4寸
+14.	腹结：脐中下1.3寸，前正中线旁开4寸
+15.	*大横：脐中旁开4寸
+16.	腹哀：脐中上3寸，前正中线旁开4寸
+17.	食窦：第5肋间隙，前正中线旁开6寸
+18.	天溪：第4肋间隙，前正中线旁开6寸
+19.	胸乡：第3肋间隙，前正中线旁开6寸
+20.	周荣：第2肋间隙，前正中线旁开6寸
+21.	*大包：第6肋间隙，当腋中线上
+
+-手少阴心经
+1.	*极泉：腋窝中央，腋动脉搏动处
+2.	青灵：肘横纹上3寸，肱二头肌的内侧沟中
+3.	*少海：横平肘横纹，肱骨内上髁前缘
+4.	灵道：腕掌侧远端横纹上1.5寸，尺侧腕屈肌腱的桡侧缘
+5.	*通里：腕掌侧远端横纹上1寸，尺侧腕屈肌腱的桡侧缘
+6.	*阴郄：腕掌侧远端横纹上0.5寸，尺侧腕屈肌腱的桡侧缘
+7.	*神门：腕掌侧远端横纹尺侧端，尺侧腕屈肌腱的桡侧缘
+8.	少府：横平第5掌指关节近端，第4、5掌骨之间
+9.	*少冲：小指末节桡侧，指甲根角侧上方0.1寸
+
+-手太阳小肠经
+1.	*少泽：小指末节尺侧，指甲根角侧上方0.1寸
+2.	前谷：第5掌指关节尺侧远端赤白肉际凹陷中
+3.	*后溪：第5掌指关节尺侧近端赤白肉际凹陷中
+4.	*腕骨：第5掌骨底与三角骨之间的赤白肉际凹陷中
+5.	阳谷：尺骨茎突与三角骨之间的凹陷中
+6.	*养老：腕背横纹上1寸，尺骨头桡侧凹陷中
+7.	*支正：腕背侧远端横纹上5寸，尺骨尺侧与尺侧腕屈肌之间
+8.	小海：尺骨鹰嘴与肱骨内上髁之间凹陷中
+9.	*肩贞：肩关节后下方，腋后纹头直上1寸
+10.	臑俞：腋后纹头直上，肩胛冈下缘凹陷中
+11.	*天宗：肩胛冈中点与肩胛骨下角连线上1/3与下2/3交点凹陷中
+12.	秉风：肩胛冈中点上方冈上窝中
+13.	曲垣：肩胛冈内侧端上缘凹陷中
+14.	肩外俞：第1胸椎棘突下，后正中线旁开3寸
+15.	肩中俞：第7颈椎棘突下，后正中线旁开2寸
+16.	天窗：横平喉结，胸锁乳突肌的后缘
+17.	天容：下颌角后方，胸锁乳突肌的前缘凹陷中
+18.	*颧髎：颧骨下缘，目外眦直下凹陷中
+19.	*听宫：耳屏正中与下颌骨髁突之间的凹陷中
+
+-足太阳膀胱经
+1.	*睛明：目内眦内上方眶内侧壁凹陷中（闭目，在目内眦内上方 0.1寸的凹陷中）
+2.	*攒竹：眉头凹陷中，额切迹处
+3.	眉冲：额切迹直上入发际0.5寸
+4.	曲差：前发际正中直上0.5寸，旁开1.5寸
+5.	五处：前发际正中直上1寸，旁开1.5寸
+6.	承光：前发际正中直上2.5寸，旁开1.5寸
+7.	通天：前发际正中直上4寸，旁开1.5寸
+8.	络却：前发际正中直上5.5寸，旁开1.5寸
+9.	玉枕：横平枕外隆凸上缘，后发际正中旁开1.3寸
+10.	*天柱：横平第2颈椎棘突上际，斜方肌外缘凹陷中（后发际正中 直上0.5寸，斜方肌外缘凹陷中）
+11.	大杼：第1胸椎棘突下，后正中线旁开1.5寸
+12.	*风门：第2胸椎棘突下，后正中线旁开1.5寸
+13.	*肺俞：第3胸椎棘突下，后正中线旁开1.5寸
+14.	*厥阴俞：第4胸椎棘突下，后正中线旁开1.5寸
+15.	*心俞：第5胸椎棘突下，后正中线旁开1.5寸
+16.	督俞：第6胸椎棘突下，后正中线旁开1.5寸
+17.	*膈俞：第7胸椎棘突下，后正中线旁开1.5寸
+18.	*肝俞：第9胸椎棘突下，后正中线旁开1.5寸
+19.	*胆俞：第10胸椎棘突下，后正中线旁开1.5寸
+20.	*脾俞：第11胸椎棘突下，后正中线旁开1.5寸
+21.	*胃俞：第12胸椎棘突下，后正中线旁开1.5寸
+22.	三焦俞：第1腰椎棘突下，后正中线旁开1.5寸
+23.	*肾俞：第2腰椎棘突下，后正中线旁开1.5寸
+24.	气海俞：第3腰椎棘突下，后正中线旁开1.5寸
+25.	*大肠俞：第4腰椎棘突下，后正中线旁开1.5寸
+26.	关元俞：第5腰椎棘突下，后正中线旁开1.5寸
+27.	小肠俞：横平第1骶后孔，后正中线旁开1.5寸
+28.	*膀胱俞：横平第2骶后孔，后正中线旁开1.5寸
+29.	中膂俞：横平第3骶后孔，后正中线旁开1.5寸
+30.	白环俞：横平第4骶后孔，后正中线旁开1.5寸（骶管裂孔旁开1.5 寸）
+31.	上髎：正对第1骶后孔中
+32.	*次髎：正对第2骶后孔中
+33.	中髎：正对第3骶后孔中
+34.	下髎：正对第4骶后孔中
+35.	会阳：尾骨端旁开0.5寸
+36.	*承扶：臀沟的中点
+37.	殷门：臀沟下6寸，股二头肌与半腱肌之间
+38.	浮郄：腘横纹上1寸，股二头肌腱的内侧缘
+39.	*委阳：腘横纹上，股二头肌腱的内侧缘
+40.	*委中：腘横纹中点
+41.	附分：第2胸椎棘突下，后正中线旁开3寸
+42.	魄户：第3胸椎棘突下，后正中线旁开3寸
+43.	*膏肓：第4胸椎棘突下，后正中线旁开3寸
+44.	神堂：第5胸椎棘突下，后正中线旁开3寸
+45.	譩譆：第6胸椎棘突下，后正中线旁开3寸
+46.	膈关：第7胸椎棘突下，后正中线旁开3寸
+47.	魂门：第9胸椎棘突下，后正中线旁开3寸
+48.	阳纲：第10胸椎棘突下，后正中线旁开3寸
+49.	意舍：第11胸椎棘突下，后正中线旁开3寸
+50.	胃仓：第12胸椎棘突下，后正中线旁开3寸
+51.	肓门：第1腰椎棘突下，后正中线旁开3寸
+52.	*志室：第2腰椎棘突下，后正中线旁开3寸
+53.	胞肓：横平第2骶后孔，后正中线旁开3寸
+54.	*秩边：横平第4骶后孔，后正中线旁开3寸（骶管裂孔旁开3 寸）
+55.	合阳：腘横纹下2寸，腓肠肌内、外侧头之间
+56.	承筋：在腘横纹下5寸，腓肠肌两肌腹之间
+57.	*承山：腓肠肌两肌腹与肌腱交角处。当伸直小腿或足跟上提 时，腓肠肌肌腹下出现尖角凹陷中
+58.	*飞扬：昆仑直上7寸，腓肠肌外下缘与跟腱移行处
+59.	跗阳：昆仑直上3寸，腓骨与跟腱之间
+60.	*昆仑：外踝尖与跟腱之间的凹陷中
+61.	仆参：昆仑直下，跟骨外侧，赤白肉际处
+62.	*申脉：外踝尖直下，外踝下缘与跟骨之间凹陷中
+63.	金门：外踝前缘直下，骰骨下缘凹陷中
+64.	*京骨：第5跖骨粗隆前下方，赤白肉际处
+65.	束骨：第5跖趾关节的近端，赤白肉际处
+66.	足通谷：第5跖趾关节的远端，赤白肉际处
+67.	*至阴：小趾末节外侧，趾甲根角侧后方0.1寸
+
+-足少阴肾经
+1.	*涌泉：屈足卷趾时足心最凹陷中
+2.	*然谷：足舟骨粗隆下方，赤白肉际处
+3.	*太溪：内踝尖与跟腱之间的凹陷中
+4.	*大钟：内踝后下方，跟骨上缘，跟腱附着部前缘凹陷中
+5.	水泉：太溪直下1寸，跟骨结节内侧凹陷中
+6.	*照海：内踝尖下1寸，内踝下缘边际凹陷中
+7.	*复溜：内踝尖上2寸，跟腱的前缘
+8.	交信：内踝尖上2寸，胫骨内侧缘后际凹陷中
+9.	筑宾：太溪直上5寸，比目鱼肌与跟腱之间
+10.	阴谷：在腘窝内侧，屈膝时，当半腱肌肌腱与半膜肌肌腱之间
+11.	横骨：脐中下5寸，前正中线旁开0.5寸
+12.	*大赫：脐中下4寸，前正中线旁开0.5寸
+13.	气穴：脐中下3寸，前正中线旁开0.5寸
+14.	四满：脐中下2寸，前正中线旁开0.5寸
+15.	中注：脐中下1寸，前正中线旁开0.5寸
+16.	肓俞：脐中旁开0.5寸
+17.	商曲：脐中上2寸，前正中线旁开0.5寸
+18.	石关：脐中上3寸，前正中线旁开0.5寸
+19.	阴都：脐中上4寸，前正中线旁开0.5寸
+20.	腹通谷：脐中上5寸，前正中线旁开0.5寸
+21.	幽门：脐中上6寸，前正中线旁开0.5寸
+22.	步廊：第5肋间隙，前正中线旁开2寸
+23.	神封：第4肋间隙，前正中线旁开2寸
+24.	灵墟：第3肋间隙，前正中线旁开2寸
+25.	神藏：第2肋间隙，前正中线旁开2寸
+26.	彧中：第1肋间隙，前正中线旁开2寸
+27.	俞府：锁骨下缘，前正中线旁开2寸
+
+-手厥阴心包经
+1.	*天池：第4肋间隙，前正中线旁开5寸
+2.	天泉：腋前纹头下2寸，肱二头肌的长、短头之间
+3.	*曲泽：肘横纹上，肱二头肌腱的尺侧缘凹陷中
+4.	*郄门：腕掌侧远端横纹上5寸，掌长肌腱与桡侧腕屈肌腱之间
+5.	*间使：腕掌侧远端横纹上3寸，掌长肌腱与桡侧腕屈肌腱之间
+6.	*内关：腕掌侧远端横纹上2寸，掌长肌腱与桡侧腕屈肌腱之间
+7.	*大陵：腕掌侧远端横纹中，掌长肌腱与桡侧腕屈肌腱之间
+8.	*劳宫：横平第3掌指关节近端，第2、3掌骨之间偏于第3掌骨。 握拳屈指时，中指尖下是穴
+9.	*中冲：中指末端最高点
+
+-手少阳三焦经
+1.	*关冲：第4指末节尺侧，指甲根角侧上方0.1寸（指寸）
+2.	液门：第4、5指间，指蹼缘上方赤白肉际凹陷中
+3.	*中渚：第4、5掌骨间，第4掌指关节近端凹陷中
+4.	*阳池：腕背侧远端横纹上，指伸肌腱的尺侧缘凹陷中
+5.	*外关：腕背侧远端横纹上2寸，尺骨与桡骨间隙中点
+6.	*支沟：腕背侧远端横纹上3寸，尺骨与桡骨间隙中点
+7.	会宗：腕背侧远端横纹上3寸，尺骨的桡侧缘
+8.	三阳络：腕背侧远端横纹上4寸，尺骨与桡骨间隙中点
+9.	四渎：肘尖下5寸，尺骨与桡骨间隙中点
+10.	天井：肘尖上1寸凹陷中
+11.	清冷渊：肘尖与肩峰角连线上，肘尖上2寸
+12.	消泺：肘尖与肩峰角连线上，肘尖上5寸
+13.	臑会：当肘尖与肩髎的连线上，肩髎下3寸，三角肌的后下缘
+14.	*肩髎：肩髃后方，当臂外展时，于肩峰后下方呈现凹陷处
+15.	天髎：肩胛骨上角骨际凹陷中
+16.	天牖：横平下颌角，胸锁乳突肌的后缘凹陷中
+17.	*翳风：乳突下端前方凹陷中
+18.	瘛脉：角孙与翳风沿耳轮弧形连线的上2/3与下1/3的交点处
+19.	颅息：角孙与翳风沿耳轮弧形连线的上1/3与下2/3的交点处
+20.	*角孙：耳尖正对发际处
+21.	*耳门：耳屏上切迹与下颌骨髁状突之间的凹陷中
+22.	耳和髎：鬓发后缘，耳郭根的前方，颞浅动脉的后缘
+23.	*丝竹空：眉梢凹陷中
+
+-足少阳胆经
+1.	*瞳子髎：在目外眦外侧0.5寸凹陷中
+2.	*听会：耳屏间切迹与下颌骨髁突之间的凹陷中
+3.	上关：颧弓上缘中央凹陷中
+4.	颔厌：从头维至曲鬓的弧形连线（其弧度与鬓发弧度相应）的 上1/4与下3/4的交点处
+5.	悬颅：从头维至曲鬓的弧形连线（其弧度与鬓发弧度相应）的 中点处
+6.	悬厘：从头维至曲鬓的弧形连线（其弧度与鬓发弧度相应）的 上3/4与下1/4的交点处
+7.	*曲鬓：耳前鬓角发际后缘与耳尖水平线的交点处
+8.	*率谷：耳尖直上入发际1.5寸
+9.	天冲：耳根后缘直上，入发际2寸
+10.	浮白：耳后乳突的后上方，从天冲至完骨的弧形连线（其弧度 与耳郭弧度相应）的上1/3与下2/3交点处
+11.	头窍阴：耳后乳突的后上方，从天冲到完骨的弧形连线（其弧度 与耳郭弧度相应）的上2/3与下1/3交点处
+12.	*完骨：耳后乳突的后下方凹陷中
+13.	*本神：前发际上0.5寸，头正中线旁开3寸
+14.	*阳白：眉上1寸，瞳孔直上
+15.	*头临泣：前发际上0.5寸，瞳孔直上
+16.	目窗：前发际上1.5寸，瞳孔直上
+17.	正营：前发际上2.5寸，瞳孔直上
+18.	承灵：前发际上4寸，瞳孔直上
+19.	脑空：横平枕外隆凸的上缘，风池直上
+20.	*风池：枕骨之下，胸锁乳突肌上端与斜方肌上端之间的凹陷中
+21.	*肩井：第7颈椎棘突与肩峰最外侧点连线的中点
+22.	渊腋：第4肋间隙中，在腋中线上
+23.	辄筋：第4肋间隙中，在腋中线前1寸
+24.	*日月：第7肋间隙中，前正中线旁开4寸
+25.	*京门：第12肋骨游离端的下际
+26.	*带脉：第11肋骨游离端垂线与脐水平线的交点上
+27.	五枢：横平脐下3寸，髂前上棘内侧
+28.	维道：髂前上棘内下0.5寸
+29.	居髎：髂前上棘与股骨大转子最凸点连线的中点处
+30.	*环跳：股骨大转子最凸点与骶管裂孔连线的外1/3与内2/3交点 处
+31.	*风市：髌底上7寸，髂胫束后缘
+32.	中渎：髌底上5寸，髂胫束后缘
+33.	膝阳关：股骨外上髁后上缘，股二头肌腱与髂胫束之间的凹陷中
+34.	*阳陵泉：腓骨头前下方凹陷处
+35.	阳交：外踝尖上7寸，腓骨后缘
+36.	外丘：外踝尖上7寸，腓骨前缘
+37.	*光明：外踝尖上5寸，腓骨前缘
+38.	阳辅：外踝尖上4寸，腓骨前缘
+39.	*悬钟：外踝尖上3寸，腓骨前缘
+40.	*丘墟：外踝的前下方，趾长伸肌腱的外侧凹陷中
+41.	*足临泣：第4、5跖骨底结合部的前方，第5趾长伸肌腱外侧凹陷 中
+42.	地五会：第4、5跖骨间，第4跖趾关节近端凹陷中
+43.	*侠溪：第4、5趾间，趾蹼缘后方赤白肉际处
+44.	足窍阴：第4趾末节外侧，趾甲根角侧后方0.1寸（指寸）
+
+-足厥阴肝经
+1.	*大敦：大趾末节外侧，趾甲根角侧后方0.1寸（指寸）（
+2.	*行间：第1、2趾之间，趾蹼缘后方赤白肉际处
+3.	*太冲：第1、2跖骨间，跖骨底结合部前方凹陷中，或触及动脉 搏动
+4.	中封：内踝前，胫骨前肌肌腱的内侧缘凹陷中
+5.	*蠡沟：内踝尖上5寸，胫骨内侧面的中央
+6.	中都：内踝尖上7寸，胫骨内侧面的中央
+7.	膝关：胫骨内侧髁的下方，阴陵泉后1寸
+8.	*曲泉：屈膝，当膝关节内侧面横纹内侧端，股骨内侧髁的后 缘，半腱肌、半膜肌止端的前方凹陷处
+9.	阴包：髌底上4寸，股内侧肌与缝匠肌之间
+10.	足五里：在股前区，气冲直下3寸，动脉搏动处
+11.	阴廉：气冲（ST30）直下2寸
+12.	急脉：横平耻骨联合上缘，前正中线旁开2.5寸
+13.	*章门：在第11肋游离端的下际
+14.	*期门：第6肋间隙，前正中线旁开4寸
+
+-任脉
+1.	会阴：男性在阴囊根部与肛门连线的中点，女性在大阴唇后联 合与肛门连线的中点
+2.	曲骨：耻骨联合上缘，前正中线上
+3.	*中极：脐中下4寸，前正中线上
+4.	*关元：脐中下3寸，前正中线上
+5.	石门：脐中下2寸，前正中线上
+6.	*气海：脐中下1.5寸，前正中线上
+7.	阴交：脐中下1寸，前正中线上
+8.	*神阙：在脐区，脐中央
+9.	水分：脐中上1寸，前正中线上
+10.	*下脘：脐中上2寸，前正中线上
+11.	建里：脐中上3寸，前正中线上
+12.	*中脘：脐中上4寸，前正中线上
+13.	上脘：脐中上5寸，前正中线上
+14.	巨阙：脐中上6寸，前正中线上
+15.	鸠尾：剑胸结合下1寸，前正中线上
+16.	中庭：剑胸结合中点处，前正中线上
+17.	*膻中：横平第4肋间隙，前正中线上
+18.	玉堂：横平第3肋间隙，前正中线上
+19.	紫宫：横平第2肋间隙，前正中线上
+20.	华盖：横平第1肋间隙，前正中线上
+21.	璇玑：胸骨上窝下1寸，前正中线上
+22.	*天突：在颈前区，胸骨上窝中央，前正中线上
+23.	*廉泉：在颈前区，喉结上方，舌骨上缘凹陷中，前正中线上
+24.	*承浆：在面部，颏唇沟的正中凹陷处
+
+-督脉
+1.	*长强：尾骨下方，尾骨端与肛门连线的中点处
+2.	腰俞：正对骶管裂孔，后正中线上
+3.	*腰阳关：第4腰椎棘突下凹陷中，后正中线上
+4.	*命门：第2腰椎棘突下凹陷中，后正中线上
+5.	悬枢：第1腰椎棘突下凹陷中，后正中线上
+6.	脊中：第11胸椎棘突下凹陷中，后正中线上
+7.	中枢：第10胸椎棘突下凹陷中，后正中线上
+8.	*筋缩：第9胸椎棘突下凹陷中，后正中线上
+9.	*至阳：第7胸椎棘突下凹陷中，后正中线上
+10.	灵台：第6胸椎棘突下凹陷中，后正中线上
+11.	神道：第5胸椎棘突下凹陷中，后正中线上
+12.	*身柱：第3胸椎棘突下凹陷中，后正中线上
+13.	陶道：第1胸椎棘突下凹陷中，后正中线上
+14.	*大椎：第7颈椎棘突下凹陷中，后正中线上
+15.	*哑门：第2颈椎棘突上际凹陷中，后正中线上
+16.	*风府：枕外隆凸直下，两侧斜方肌之间凹陷中
+17.	脑户：枕外隆凸的上缘凹陷处
+18.	强间：后发际正中直上4寸
+19.	后顶：当后发际正中直上5.5寸（脑户上3寸）
+20.	*百会：前发际正中直上5寸
+21.	前顶：前发际正中直上3.5寸
+22.	囟会：前发际正中直上2寸
+23.	*上星：前发际正中直上1寸
+24.	*神庭：前发际正中直上0.5寸
+25.	素髎：鼻尖的正中央
+26.	*水沟：人中沟的上1/3与中1/3交点处
+27.	兑端：上唇结节的中点
+28.	龈交：上唇系带与上齿龈的交点
+29.	印堂：两眉毛内侧端中间的凹陷中
+
+-头颈部奇穴
+1.	*四神聪：百会前后左右各旁开1寸，共4穴
+2.	鱼腰：瞳孔直上，眉毛中
+3.	*太阳：眉梢与目外眦之间，向后约一横指的凹陷处
+4.	*耳尖：在外耳轮的最高点
+5.	球后：眶下缘外1/4与内3/4交界处
+6.	上迎香：鼻翼软骨与鼻甲的交界处，近鼻唇沟上端处
+7.	*内迎香：鼻翼软骨与鼻甲交界的黏膜处
+8.	聚泉：舌背正中缝的中点处
+9.	*海泉：舌下系带中点处
+10.	*金津、玉液：舌下系带两侧的静脉上，左为金津，右为玉液
+11.	翳明：翳风后1寸
+12.	颈百劳：第7颈椎棘突直上2寸，后正中线旁开1寸
+
+-背部奇穴
+1.	定喘：横平第7颈椎棘突下，后正中线旁开0.5寸
+2.	*夹脊：第1胸椎至第5腰椎棘突下两侧，后正中线旁开0.5寸，一 侧17穴
+3.	胃脘下俞：横平第8胸椎棘突下，后正中线旁开1.5寸
+4.	痞根：横平第1腰椎棘突下，后正中线旁开3.5寸
+5.	腰眼：横平第4腰椎棘突下，后正中线旁开约3.5寸凹陷中
+6.	十七椎：第5腰椎棘突下凹陷中
+7.	腰奇：尾骨端直上2寸，骶角之间凹陷中
+
+-上肢部奇穴
+1.	肘尖：尺骨鹰嘴的尖端
+2.	二白：腕掌侧远端横纹上4寸，桡侧腕屈肌腱的两侧，一肢2穴
+3.	中魁：中指背面，近侧指间关节的中点处
+4.	大骨空：拇指背面，指间关节的中点处
+5.	小骨空：小指背面，近端指间关节中点处
+6.	腰痛点：第2、3掌骨间及第4、5掌骨之间，腕背侧远端横纹与掌 指关节中点处，一手2穴
+7.	外劳宫：第2、3掌骨间，掌指关节后0.5寸（指寸）凹陷中
+8.	八邪：第1～5指间，指蹼缘后方赤白肉际处，左右共8穴
+9.	四缝：第2～5指掌面的近侧指间关节横纹的中央，一手4穴
+10.	*十宣：十指尖端，距指甲游离缘0.1寸（指寸），左右共10穴
+
+-下肢部奇穴
+1.	鹤顶：髌底中点的上方凹陷中
+2.	*百虫窝：髌底内侧端上3寸
+3.	内膝眼：髌韧带内侧凹陷处的中央
+4.	胆囊：腓骨小头直下2寸
+5.	阑尾：髌韧带外侧凹陷下5寸，胫骨前嵴外一横指（中指）
+6.	内踝尖：内踝的最凸起处
+7.	外踝尖：外踝的最凸起处
+8.	*八风：第1～5趾间，趾蹼缘后方赤白肉际处，左右共8穴
+9.	独阴：在足底，第2趾的跖侧远端趾间关节的中点
+
+-胸腹部奇穴
+1.	子宫：脐中下4寸，前正中线旁开3寸
+`;
+
+        let acupointData = [];
+        let keyPointData = []; // 重点穴位数据
+        let normalPointData = []; // 普通穴位数据
+        let meridianMap = new Map(); // 经脉分类映射
+        let currentAcupoints = [];
+        let timer = null;
+        let timeLeft = 180; // 默认3分钟
+        let isTimerRunning = false;
+        let currentSearchType = 'acupoint'; // 当前搜索类型
+        let searchHistory = []; // 搜索历史记录
+        let currentHistoryIndex = -1; // 当前历史记录索引
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析内置数据
+            parseAcupointData(ACUPOINT_DATA_TEXT);
+            
+            // 显示数据统计信息
+            updateDataInfo();
+            
+            // 生成经脉选择框
+            generateMeridianCheckboxes();
+            
+            // 初始化滑块事件
+            const totalSlider = document.getElementById('totalPointSlider');
+            const totalSliderValue = document.getElementById('totalSliderValue');
+            const keySlider = document.getElementById('keyPointSlider');
+            const keySliderValue = document.getElementById('keySliderValue');
+            const sliderDescription = document.getElementById('sliderDescription');
+
+            totalSlider.addEventListener('input', function() {
+                const totalValue = parseInt(this.value);
+                totalSliderValue.textContent = totalValue;
+                
+                // 调整重点穴位的最大值
+                keySlider.max = totalValue;
+                if (parseInt(keySlider.value) > totalValue) {
+                    keySlider.value = totalValue;
+                    keySliderValue.textContent = totalValue;
+                }
+                
+                updateSliderDescription();
+            });
+
+            keySlider.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                keySliderValue.textContent = value;
+                updateSliderDescription();
+            });
+
+            // 时间输入验证
+            const minutesInput = document.getElementById('minutesInput');
+            const secondsInput = document.getElementById('secondsInput');
+
+            minutesInput.addEventListener('change', function() {
+                if (this.value > 10) this.value = 10;
+                if (this.value < 0) this.value = 0;
+                updateTimerDisplay();
+            });
+
+            secondsInput.addEventListener('change', function() {
+                if (this.value > 59) this.value = 59;
+                if (this.value < 0) this.value = 0;
+                updateTimerDisplay();
+            });
+        });
+
+        // 模块切换
+        function switchModule(module) {
+            const searchSection = document.getElementById('searchSection');
+            const studySection = document.getElementById('studySection');
+            const moduleBtns = document.querySelectorAll('.module-btn');
+            
+            moduleBtns.forEach(btn => btn.classList.remove('active'));
+            
+            if (module === 'search') {
+                searchSection.classList.add('active');
+                studySection.classList.remove('active');
+                moduleBtns[0].classList.add('active');
+                
+                // 切换到搜索模块时清空搜索历史
+                searchHistory = [];
+                currentHistoryIndex = -1;
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+            } else {
+                searchSection.classList.remove('active');
+                studySection.classList.add('active');
+                moduleBtns[1].classList.add('active');
+            }
+        }
+
+        // 设置搜索类型
+        function setSearchType(type) {
+            currentSearchType = type;
+            const searchTypeBtns = document.querySelectorAll('.search-type-btn');
+            const searchInput = document.getElementById('searchInput');
+            const searchTips = document.getElementById('searchTips');
+            
+            searchTypeBtns.forEach(btn => btn.classList.remove('active'));
+            
+            if (type === 'acupoint') {
+                searchTypeBtns[0].classList.add('active');
+                searchInput.placeholder = '请输入穴位名称...';
+                searchTips.innerHTML = '• 输入穴位名称（如"风池"、"太阳"）查看其归经和定位<br>• 支持模糊搜索，输入部分文字即可';
+            } else {
+                searchTypeBtns[1].classList.add('active');
+                searchInput.placeholder = '请输入经脉名称...';
+                searchTips.innerHTML = '• 输入经脉名称（如"足少阳胆经"、"手太阴肺经"）查看该经脉的所有穴位<br>• 支持简称搜索，如输入"胆经"、"肺经"等';
+            }
+            
+            // 清空搜索结果（但不清空历史记录）
+            document.getElementById('searchResults').innerHTML = '';
+        }
+
+        // 处理回车键
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        // 执行搜索
+        function performSearch(isFromHistory = false) {
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput.value.trim();
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!searchTerm) {
+                searchResults.innerHTML = '<div class="no-results">请输入搜索内容</div>';
+                return;
+            }
+            
+            // 如果不是从历史记录触发的搜索，则保存到历史
+            if (!isFromHistory) {
+                // 如果当前不在历史记录的最后，删除后面的记录
+                if (currentHistoryIndex < searchHistory.length - 1) {
+                    searchHistory = searchHistory.slice(0, currentHistoryIndex + 1);
+                }
+                
+                // 添加新的搜索记录
+                searchHistory.push({
+                    type: currentSearchType,
+                    term: searchTerm,
+                    timestamp: Date.now()
+                });
+                currentHistoryIndex = searchHistory.length - 1;
+            }
+            
+            if (currentSearchType === 'acupoint') {
+                searchAcupoint(searchTerm);
+            } else {
+                searchMeridian(searchTerm);
+            }
+        }
+
+        // 返回上一次搜索
+        function goBack() {
+            if (currentHistoryIndex > 0) {
+                currentHistoryIndex--;
+                const prevSearch = searchHistory[currentHistoryIndex];
+                
+                // 恢复搜索状态
+                currentSearchType = prevSearch.type;
+                document.getElementById('searchInput').value = prevSearch.term;
+                setSearchType(prevSearch.type);
+                performSearch(true);
+            }
+        }
+
+        // 前进到下一次搜索
+        function goForward() {
+            if (currentHistoryIndex < searchHistory.length - 1) {
+                currentHistoryIndex++;
+                const nextSearch = searchHistory[currentHistoryIndex];
+                
+                // 恢复搜索状态
+                currentSearchType = nextSearch.type;
+                document.getElementById('searchInput').value = nextSearch.term;
+                setSearchType(nextSearch.type);
+                performSearch(true);
+            }
+        }
+
+        // 搜索穴位
+        function searchAcupoint(searchTerm) {
+            const searchResults = document.getElementById('searchResults');
+            const results = acupointData.filter(point => 
+                point.name.includes(searchTerm)
+            );
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="no-results">未找到相关穴位，请检查输入是否正确</div>';
+                return;
+            }
+            
+            let html = '';
+            
+            // 如果有搜索历史，显示返回按钮
+            if (currentHistoryIndex > 0) {
+                html += `
+                    <button class="back-button" onclick="goBack()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M5 12L12 19M5 12L12 5"/>
+                        </svg>
+                        返回
+                    </button>
+                `;
+            }
+            
+            html += `<h3 style="margin-bottom: 20px;">找到 ${results.length} 个相关穴位：</h3>`;
+            
+            results.forEach(point => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-title">
+                            ${point.name}
+                            ${point.isKeyPoint ? '<span class="key-point-badge">★ 重点</span>' : ''}
+                        </div>
+                        <div class="result-meridian">📍 归经：${point.meridian}</div>
+                        <div class="result-location search-result-text">🎯 定位：${point.location}</div>
+                    </div>
+                `;
+            });
+            
+            searchResults.innerHTML = html;
+        }
+
+        // 搜索经脉
+        function searchMeridian(searchTerm) {
+            const searchResults = document.getElementById('searchResults');
+            const matchedMeridians = [];
+            
+            meridianMap.forEach((points, meridianName) => {
+                if (meridianName.includes(searchTerm)) {
+                    matchedMeridians.push({ name: meridianName, points: points });
+                }
+            });
+            
+            if (matchedMeridians.length === 0) {
+                searchResults.innerHTML = '<div class="no-results">未找到相关经脉，请检查输入是否正确</div>';
+                return;
+            }
+            
+            let html = '';
+            
+            // 如果有搜索历史，显示返回按钮
+            if (currentHistoryIndex > 0) {
+                html += `
+                    <button class="back-button" onclick="goBack()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M5 12L12 19M5 12L12 5"/>
+                        </svg>
+                        返回
+                    </button>
+                `;
+            }
+            
+            html += `<h3 style="margin-bottom: 20px;">找到 ${matchedMeridians.length} 条相关经脉：</h3>`;
+            
+            matchedMeridians.forEach(meridian => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-title">
+                            🌟 ${meridian.name}
+                            <span style="font-size: 0.8em; color: #666;">（共 ${meridian.points.length} 穴）</span>
+                        </div>
+                        <div class="meridian-acupoints-list">
+                `;
+                
+                meridian.points.forEach(point => {
+                    const className = point.isKeyPoint ? 'acupoint-tag key-point' : 'acupoint-tag';
+                    html += `<div class="${className}" onclick="showAcupointDetail('${point.name}')">${point.name}</div>`;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            searchResults.innerHTML = html;
+        }
+
+        // 显示穴位详情
+        function showAcupointDetail(acupointName) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = acupointName;
+            
+            // 临时切换到穴位搜索类型，但不改变UI
+            const prevType = currentSearchType;
+            currentSearchType = 'acupoint';
+            performSearch(false);
+            
+            // 恢复之前的搜索类型（用于UI显示）
+            // 但实际搜索已经记录在历史中
+        }
+
+        // 解析穴位数据
+        function parseAcupointData(content) {
+            acupointData = [];
+            keyPointData = [];
+            normalPointData = [];
+            meridianMap.clear();
+            
+            const lines = content.split('\n');
+            let currentMeridian = '';
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                // 跳过分隔线
+                if (line.match(/^[—\-]+$/)) continue;
+                
+                // 检查是否是分类标题（以-开头的行）
+                if (line.startsWith('-')) {
+                    // 去掉开头的横线和末尾的冒号（如果有）
+                    currentMeridian = line.substring(1).replace(/[:：]$/, '').trim();
+                    if (!meridianMap.has(currentMeridian)) {
+                        meridianMap.set(currentMeridian, []);
+                    }
+                } else if (line.match(/^\d+\./)) {
+                    // 解析穴位信息
+                    const match = line.match(/^\d+\.\s*(\*?)([^：:]+)[：:](.+)$/);
+                    if (match && currentMeridian) {
+                        const isKeyPoint = match[1] === '*';
+                        const acupoint = {
+                            name: match[2].trim(),
+                            location: match[3].trim(),
+                            meridian: currentMeridian,
+                            isKeyPoint: isKeyPoint
+                        };
+                        
+                        acupointData.push(acupoint);
+                        meridianMap.get(currentMeridian).push(acupoint);
+                        
+                        if (isKeyPoint) {
+                            keyPointData.push(acupoint);
+                        } else {
+                            normalPointData.push(acupoint);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 更新数据信息显示
+        function updateDataInfo() {
+            document.getElementById('totalPointsCount').textContent = acupointData.length;
+            document.getElementById('keyPointsCount').textContent = keyPointData.length;
+            document.getElementById('normalPointsCount').textContent = normalPointData.length;
+            document.getElementById('meridiansCount').textContent = meridianMap.size;
+        }
+
+        // 生成经脉选择框
+        function generateMeridianCheckboxes() {
+            const meridianGrid = document.getElementById('meridianGrid');
+            meridianGrid.innerHTML = '';
+            
+            meridianMap.forEach((acupoints, meridianName) => {
+                const item = document.createElement('div');
+                item.className = 'meridian-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'meridian-checkbox';
+                checkbox.id = `meridian-${meridianName}`;
+                checkbox.checked = true; // 默认全选
+                checkbox.value = meridianName;
+                
+                const label = document.createElement('label');
+                label.className = 'meridian-label';
+                label.htmlFor = `meridian-${meridianName}`;
+                label.textContent = `${meridianName} (${acupoints.length}穴)`;
+                
+                item.appendChild(checkbox);
+                item.appendChild(label);
+                meridianGrid.appendChild(item);
+            });
+        }
+
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.meridian-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+        }
+
+        // 获取选中的经脉
+        function getSelectedMeridians() {
+            const checkboxes = document.querySelectorAll('.meridian-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        // 更新滑块描述
+        function updateSliderDescription() {
+            const totalValue = parseInt(document.getElementById('totalPointSlider').value);
+            const keyValue = parseInt(document.getElementById('keyPointSlider').value);
+            const normalCount = totalValue - keyValue;
+            const sliderDescription = document.getElementById('sliderDescription');
+            
+            if (keyValue === 0) {
+                sliderDescription.textContent = `将抽取 ${totalValue} 个普通穴位`;
+            } else if (normalCount === 0) {
+                sliderDescription.textContent = `将抽取 ${keyValue} 个重点穴位`;
+            } else {
+                sliderDescription.textContent = `将抽取 ${keyValue} 个重点穴位 + ${normalCount} 个普通穴位`;
+            }
+        }
+
+        // 开始学习
+        function startStudy() {
+            // 获取设置
+            const totalPointCount = parseInt(document.getElementById('totalPointSlider').value);
+            const keyPointCount = parseInt(document.getElementById('keyPointSlider').value);
+            const normalPointCount = totalPointCount - keyPointCount;
+            const selectedMeridians = getSelectedMeridians();
+
+            if (selectedMeridians.length === 0) {
+                alert('请至少选择一条经脉！');
+                return;
+            }
+
+            // 筛选符合条件的穴位
+            const availableKeyPoints = keyPointData.filter(p => selectedMeridians.includes(p.meridian));
+            const availableNormalPoints = normalPointData.filter(p => selectedMeridians.includes(p.meridian));
+
+            // 检查穴位数量是否足够
+            if (keyPointCount > 0 && availableKeyPoints.length < keyPointCount) {
+                alert(`选中经脉的重点穴位数量不足！需要 ${keyPointCount} 个，实际只有 ${availableKeyPoints.length} 个。`);
+                return;
+            }
+            if (normalPointCount > 0 && availableNormalPoints.length < normalPointCount) {
+                alert(`选中经脉的普通穴位数量不足！需要 ${normalPointCount} 个，实际只有 ${availableNormalPoints.length} 个。`);
+                return;
+            }
+
+            currentAcupoints = [];
+
+            // 随机选择重点穴位
+            if (keyPointCount > 0) {
+                const selectedKeyPoints = [];
+                const usedKeyIndices = new Set();
+                while (selectedKeyPoints.length < keyPointCount) {
+                    const randomIndex = Math.floor(Math.random() * availableKeyPoints.length);
+                    if (!usedKeyIndices.has(randomIndex)) {
+                        usedKeyIndices.add(randomIndex);
+                        selectedKeyPoints.push(availableKeyPoints[randomIndex]);
+                    }
+                }
+                currentAcupoints.push(...selectedKeyPoints);
+            }
+
+            // 随机选择普通穴位
+            if (normalPointCount > 0) {
+                const selectedNormalPoints = [];
+                const usedNormalIndices = new Set();
+                while (selectedNormalPoints.length < normalPointCount) {
+                    const randomIndex = Math.floor(Math.random() * availableNormalPoints.length);
+                    if (!usedNormalIndices.has(randomIndex)) {
+                        usedNormalIndices.add(randomIndex);
+                        selectedNormalPoints.push(availableNormalPoints[randomIndex]);
+                    }
+                }
+                currentAcupoints.push(...selectedNormalPoints);
+            }
+
+            // 打乱顺序
+            for (let i = currentAcupoints.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [currentAcupoints[i], currentAcupoints[j]] = [currentAcupoints[j], currentAcupoints[i]];
+            }
+
+            displayAcupoints();
+            startTimer();
+            
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('showAnswersBtn').style.display = 'inline-block';
+            
+            const pointInfo = keyPointCount > 0 && normalPointCount > 0 
+                ? `（${keyPointCount} 个重点穴位，${normalPointCount} 个普通穴位）`
+                : keyPointCount > 0 
+                    ? `（${keyPointCount} 个重点穴位）`
+                    : `（${normalPointCount} 个普通穴位）`;
+            
+            updateStatus(`🤔 请回忆这些穴位的归经和定位...${pointInfo}`);
+        }
+
+        // 显示穴位
+        function displayAcupoints() {
+            const grid = document.getElementById('acupointsGrid');
+            grid.innerHTML = '';
+            
+            currentAcupoints.forEach((acupoint, index) => {
+                const card = document.createElement('div');
+                card.className = 'acupoint-card';
+                card.innerHTML = `
+                    <div class="acupoint-name">
+                        ${acupoint.name}
+                        ${acupoint.isKeyPoint ? '<span class="key-point-badge">★ 重点</span>' : ''}
+                    </div>
+                    <div class="acupoint-details" id="details-${index}">
+                        <div class="meridian">📍 归经：${acupoint.meridian}</div>
+                        <div class="location">🎯 定位：${acupoint.location}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 开始计时器
+        function startTimer() {
+            // 获取设置的时间
+            const minutes = parseInt(document.getElementById('minutesInput').value) || 0;
+            const seconds = parseInt(document.getElementById('secondsInput').value) || 0;
+            timeLeft = minutes * 60 + seconds;
+            
+            if (timeLeft === 0) {
+                timeLeft = 180; // 默认3分钟
+            }
+            
+            isTimerRunning = true;
+            updateTimerDisplay();
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                // 最后30秒警告效果
+                if (timeLeft <= 30) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            let displayTime = timeLeft;
+            if (!isTimerRunning) {
+                const minutes = parseInt(document.getElementById('minutesInput').value) || 0;
+                const seconds = parseInt(document.getElementById('secondsInput').value) || 0;
+                displayTime = minutes * 60 + seconds;
+                if (displayTime === 0) displayTime = 180;
+            }
+            
+            const minutes = Math.floor(displayTime / 60);
+            const seconds = displayTime % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        // 时间到
+        function timeUp() {
+            clearInterval(timer);
+            isTimerRunning = false;
+            showAllAnswers();
+            updateStatus('⏰ 时间到！答案已显示');
+            
+            document.getElementById('timer').classList.remove('warning');
+            document.getElementById('showAnswersBtn').style.display = 'none';
+            document.getElementById('newRoundBtn').style.display = 'inline-block';
+        }
+
+        // 显示所有答案
+        function showAllAnswers() {
+            currentAcupoints.forEach((_, index) => {
+                const details = document.getElementById(`details-${index}`);
+                details.classList.add('show');
+            });
+            
+            if (isTimerRunning) {
+                clearInterval(timer);
+                isTimerRunning = false;
+                updateStatus('👁️ 答案已显示，继续巩固记忆吧！');
+                document.getElementById('timer').classList.remove('warning');
+            }
+            
+            document.getElementById('showAnswersBtn').style.display = 'none';
+            document.getElementById('newRoundBtn').style.display = 'inline-block';
+        }
+
+        // 新一轮学习
+        function newRound() {
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('showAnswersBtn').style.display = 'none';
+            document.getElementById('newRoundBtn').style.display = 'none';
+            
+            document.getElementById('acupointsGrid').innerHTML = '';
+            updateTimerDisplay();
+            document.getElementById('timer').classList.remove('warning');
+            
+            updateStatus('🎯 准备开始新一轮学习...');
+        }
+
+        // 更新状态信息
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+    </script>
+</body>
+</html>
